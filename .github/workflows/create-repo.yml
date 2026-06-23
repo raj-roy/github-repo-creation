@@ -1,0 +1,40 @@
+name: Generate Repo From Template
+
+on:
+  workflow_dispatch:
+    inputs:
+      template_repo:
+        description: 'Select the template repository'
+        required: true
+        type: choice
+        options:
+          - 'raj-roy/private-repo-template'
+          - 'raj-roy/public-repo-template'
+      new_repo_name:
+        description: 'Name of the new repository'
+        required: true
+        type: string
+      is_private:
+        description: 'Should the new repository be private?'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  create-repository:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create repository from template
+        env:
+          GH_TOKEN: ${{ secrets.REPO_CREATION_TOKEN }}
+        run: |
+          VISIBILITY="--public"
+          if [ "${{ inputs.is_private }}" = "true" ]; then
+            VISIBILITY="--private"
+          fi
+          
+          echo "Generating repository: ${{ inputs.new_repo_name }} from template: ${{ inputs.template_repo }}"
+          
+          gh repo create "${{ github.repository_owner }}/${{ inputs.new_repo_name }}" \
+            --template "${{ inputs.template_repo }}" \
+            $VISIBILITY
